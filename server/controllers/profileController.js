@@ -2,7 +2,7 @@ import Profile from '../models/Profile.js'
 import User from '../models/User.js'
 import asyncHandler from '../utils/asyncHandler.js'
 
-const fields = body => ({ fullName: body.fullName || '', role: body.role || '', department: body.department || '', organization: body.organization || '' })
+const fields = body => ({ fullName: body.fullName || '', department: body.department || '', organization: body.organization || '' })
 
 export const getProfile = asyncHandler(async (req, res) => {
   const legacy = await Profile.findOne({ uid: req.user.uid })
@@ -13,6 +13,6 @@ export const getProfile = asyncHandler(async (req, res) => {
 export const updateProfile = asyncHandler(async (req, res) => {
   const input = fields(req.body)
   const user = await User.findOneAndUpdate({ firebaseUid: req.user.uid }, { name: input.fullName, department: input.department, organization: input.organization, email: req.user.email || '' }, { returnDocument: 'after', upsert: true, runValidators: true, setDefaultsOnInsert: true })
-  await Profile.findOneAndUpdate({ uid: req.user.uid }, { ...input, email: req.user.email || '' }, { returnDocument: 'after', upsert: true, runValidators: true })
+  await Profile.findOneAndUpdate({ uid: req.user.uid }, { ...input, role: user.role, email: req.user.email || '' }, { returnDocument: 'after', upsert: true, runValidators: true })
   res.json({ success: true, profile: { fullName: user.name, email: user.email, role: user.role, department: user.department, organization: user.organization, status: user.status } })
 })

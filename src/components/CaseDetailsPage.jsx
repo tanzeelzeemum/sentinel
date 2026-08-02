@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { addCaseNote, assignOfficer, deleteCase, getCase, getCaseOfficers, getProfile, updateCaseStatus, updateThreatAssessment } from '../api/cases'
+import { addCaseNote, assignOfficer, deleteCase, getCase, getCaseOfficers, getProfile, getReports, updateCaseStatus, updateThreatAssessment } from '../api/cases'
 
 const labels = { low: 'Low', moderate: 'Moderate', high: 'High', critical: 'Critical', open: 'Open', 'under-review': 'Under review', resolved: 'Resolved', closed: 'Closed' }
 const statuses = ['open', 'under-review', 'resolved', 'closed']
@@ -15,6 +15,7 @@ export default function CaseDetailsPage() {
   const [item, setItem] = useState(null)
   const [alert, setAlert] = useState(null)
   const [profile, setProfile] = useState(null)
+  const [reports, setReports] = useState([])
   const [officers, setOfficers] = useState([])
   const [note, setNote] = useState('')
   const [status, setStatus] = useState('open')
@@ -29,15 +30,17 @@ export default function CaseDetailsPage() {
   const canEdit = role === 'admin' || role === 'officer'
   const canAssign = role === 'admin'
   const canDelete = role === 'admin'
+  const canCreateReport = role === 'admin' || role === 'officer'
 
   const load = async () => {
     setError('')
     try {
-      const [casePayload, profilePayload, officersPayload] = await Promise.all([getCase(id), getProfile(), getCaseOfficers()])
+      const [casePayload, profilePayload, officersPayload, reportsPayload] = await Promise.all([getCase(id), getProfile(), getCaseOfficers(), getReports({ caseId: id })])
       setItem(casePayload.case)
       setAlert(casePayload.alert || null)
       setProfile(profilePayload.profile || null)
       setOfficers(Array.isArray(officersPayload.officers) ? officersPayload.officers : [])
+      setReports(Array.isArray(reportsPayload.reports) ? reportsPayload.reports : [])
       setStatus(casePayload.case?.status || 'open')
       setAssignedOfficer(casePayload.case?.assignedOfficer?._id || '')
     } catch (err) {
@@ -102,6 +105,7 @@ export default function CaseDetailsPage() {
       <article><span>Related Alert</span><b>{alert ? `${alert.status} ${labels[alert.threatLevel] || alert.threatLevel}` : 'No threat alert'}</b></article>
     </section>
     <section className="case-section"><h2>Description</h2><p>{item.description}</p>{item.tags?.length > 0 && <p className="tag-row">{item.tags.map(tag => <span key={tag}>{tag}</span>)}</p>}</section>
+    <section className="case-section mt-4 overflow-hidden"><div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"><h2>Incident Reports</h2>{canCreateReport && <Link className="secondary-button inline-flex" to={`/reports/new?caseId=${item._id}`}>Add Report</Link>}</div>{reports.length === 0 ? <p className="muted rounded-md border border-dashed border-slate-300 p-4">No incident reports are linked to this case.</p> : <div className="table-wrap overflow-x-auto"><table><thead><tr><th>REPORT</th><th>INCIDENT DATE</th><th>LOCATION</th><th>SOURCE</th><th>CREDIBILITY</th></tr></thead><tbody>{reports.map(report => <tr key={report._id}><td><Link to={`/reports/${report._id}`}><b>{report.title}</b></Link></td><td>{report.incidentDate ? new Date(report.incidentDate).toLocaleDateString() : '-'}</td><td>{report.location || '-'}</td><td>{report.sourceReliability}</td><td>{report.informationCredibility}</td></tr>)}</tbody></table></div>}</section>
     <div className="action-grid">
       {canEdit && <form className="case-section mini-form" onSubmit={saveStatus}><h2>Change Status</h2><label>Status<select value={status} onChange={e => setStatus(e.target.value)}>{statuses.map(value => <option key={value} value={value}>{labels[value]}</option>)}</select></label><button className="button" disabled={saving}>Save Status</button></form>}
       {canAssign && <form className="case-section mini-form" onSubmit={saveAssignment}><h2>Assign Officer</h2><label>Officer<select value={assignedOfficer} onChange={e => setAssignedOfficer(e.target.value)}><option value="">Select officer</option>{officers.map(officer => <option key={officer._id} value={officer._id}>{officer.name || officer.email}</option>)}</select></label><button className="button" disabled={saving || !assignedOfficer}>Assign</button></form>}

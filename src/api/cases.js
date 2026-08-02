@@ -50,5 +50,13 @@ export const updateThreatAssessment = (id, assessment) => apiRequest(`/api/cases
 export const getCaseOfficers = () => apiRequest('/api/cases/meta/officers')
 export const getAlerts = () => apiRequest('/api/alerts')
 export const updateAlertStatus = (id, status) => apiRequest(`/api/alerts/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) })
+export const getReports = filters => {
+  const params = new URLSearchParams(Object.entries(filters || {}).filter(([, value]) => value))
+  return apiRequest(`/api/reports${params.toString() ? `?${params}` : ''}`)
+}
+export const getReport = id => apiRequest(`/api/reports/${id}`)
+export const createReport = report => apiRequest('/api/reports', { method: 'POST', body: JSON.stringify(report) })
+export const updateReport = (id, report) => apiRequest(`/api/reports/${id}`, { method: 'PUT', body: JSON.stringify(report) })
+export const deleteReport = id => apiRequest(`/api/reports/${id}`, { method: 'DELETE' })
 export const getProfile = () => apiRequest('/api/profile')
 export const updateProfile = profile => apiRequest('/api/profile', { method: 'PUT', body: JSON.stringify(profile) })
