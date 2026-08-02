@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+.env.*
+.env.local
+*.log
+serviceAccountKey.json
+firebase-admin-key.json
+sentinel-*-firebase-adminsdk-*.json
+
+!.env.example
