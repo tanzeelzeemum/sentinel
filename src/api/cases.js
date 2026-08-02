@@ -35,10 +35,28 @@ export async function apiRequest(path, options = {}) {
 }
 
 export const getCases = () => apiRequest('/api/cases')
-export const createCase = report => apiRequest('/api/cases', { method: 'POST', body: JSON.stringify(report) })
-export const updateCase = (id, report) => apiRequest(`/api/cases/${id}`, { method: 'PUT', body: JSON.stringify(report) })
+export const getCasesWithFilters = filters => {
+  const params = new URLSearchParams(Object.entries(filters || {}).filter(([, value]) => value))
+  return apiRequest(`/api/cases${params.toString() ? `?${params}` : ''}`)
+}
+export const getCase = id => apiRequest(`/api/cases/${id}`)
+export const createCase = caseFile => apiRequest('/api/cases', { method: 'POST', body: JSON.stringify(caseFile) })
+export const updateCase = (id, caseFile) => apiRequest(`/api/cases/${id}`, { method: 'PUT', body: JSON.stringify(caseFile) })
 export const deleteCase = id => apiRequest(`/api/cases/${id}`, { method: 'DELETE' })
+export const updateCaseStatus = (id, status) => apiRequest(`/api/cases/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) })
+export const assignOfficer = (id, assignedOfficer) => apiRequest(`/api/cases/${id}/assign`, { method: 'PUT', body: JSON.stringify({ assignedOfficer }) })
+export const addCaseNote = (id, text) => apiRequest(`/api/cases/${id}/notes`, { method: 'POST', body: JSON.stringify({ text }) })
+export const updateThreatAssessment = (id, assessment) => apiRequest(`/api/cases/${id}/threat-assessment`, { method: 'PUT', body: JSON.stringify(assessment) })
+export const getCaseOfficers = () => apiRequest('/api/cases/meta/officers')
 export const getAlerts = () => apiRequest('/api/alerts')
 export const updateAlertStatus = (id, status) => apiRequest(`/api/alerts/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) })
+export const getReports = filters => {
+  const params = new URLSearchParams(Object.entries(filters || {}).filter(([, value]) => value))
+  return apiRequest(`/api/reports${params.toString() ? `?${params}` : ''}`)
+}
+export const getReport = id => apiRequest(`/api/reports/${id}`)
+export const createReport = report => apiRequest('/api/reports', { method: 'POST', body: JSON.stringify(report) })
+export const updateReport = (id, report) => apiRequest(`/api/reports/${id}`, { method: 'PUT', body: JSON.stringify(report) })
+export const deleteReport = id => apiRequest(`/api/reports/${id}`, { method: 'DELETE' })
 export const getProfile = () => apiRequest('/api/profile')
 export const updateProfile = profile => apiRequest('/api/profile', { method: 'PUT', body: JSON.stringify(profile) })

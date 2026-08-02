@@ -9,3 +9,5 @@ firebase-admin-key.json
 sentinel-*-firebase-adminsdk-*.json
 
 !.env.example
+
+.vscode/

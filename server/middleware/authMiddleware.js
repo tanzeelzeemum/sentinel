@@ -15,9 +15,9 @@ export async function verifyFirebaseToken(req, res, next) {
     const user = await User.findOneAndUpdate(
       { firebaseUid: decodedToken.uid },
       { $setOnInsert: { firebaseUid: decodedToken.uid, email, role: bootstrapAdmins.includes(email) ? 'admin' : 'officer', status: 'active' } },
-      { new: true, upsert: true, runValidators: true }
+      { returnDocument: 'after', upsert: true, runValidators: true }
     )
-    if (user.status !== 'active') return next(new AppError('This account is inactive.', 403))
+    if (user.status !== 'active') return next(new AppError('Your account is inactive.', 403))
     req.user = { id: user._id, uid: user.firebaseUid, email: user.email, role: user.role, status: user.status }
     next()
   } catch {
@@ -26,6 +26,6 @@ export async function verifyFirebaseToken(req, res, next) {
 }
 
 export const requireRole = (...roles) => (req, res, next) => {
-  if (!roles.includes(req.user.role)) return next(new AppError('You are not authorized to perform this action.', 403))
+  if (!roles.includes(req.user.role)) return next(new AppError('You do not have permission to perform this action.', 403))
   next()
 }
